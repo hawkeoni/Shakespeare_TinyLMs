@@ -3,7 +3,7 @@ from src.data import Vocab
 
 
 def generate(model_name: str, vocab_name: str, length: int, **kwargs):
-    model = LSTMGen.load_model(f"{model_name}.pt")
+    model = LSTMGen.load_model(f"{model_name}.pt").eval()
     vocab = Vocab.load_dict(f"{vocab_name}.pickle")
     while True:
         print("> ", end="")
