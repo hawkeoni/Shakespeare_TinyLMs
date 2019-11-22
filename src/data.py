@@ -1,3 +1,4 @@
+import pickle
 from typing import List, Iterator, Iterable
 from collections import Counter
 from random import randint, shuffle
@@ -43,6 +44,13 @@ class Vocab:
         inputs = inputs.tolist()
         return [''.join([self.itos[c] for c in sample]) for sample in inputs]
 
+    def save_dict(self, filename: str):
+        pickle.dump(self, open(filename, 'wb'))
+
+    @classmethod
+    def load_dict(cls, filename: str):
+        return pickle.load(open(filename, 'rb'))
+
 
 class GeneratorDataset:
 
@@ -77,6 +85,3 @@ class GeneratorDataset:
         for batch_idx in range(len(splits) // self.batch_size + 1):
             batch = splits[batch_idx * self.batch_size: (batch_idx + 1) * self.batch_size]
             yield self.vocab.numericalize(batch)
-
-
-
