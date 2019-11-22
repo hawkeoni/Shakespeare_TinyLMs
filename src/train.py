@@ -10,7 +10,7 @@ except BaseException as e:
     print(e)
     TENSORBOARD = False
 
-from src.model import LSTMGen
+from src.model import LSTMGen, GRUGen
 from src.data import GeneratorDataset
 
 
@@ -22,7 +22,7 @@ def train_epoch(model: nn.Module, optimizer: optim.Optimizer, dataset: Generator
     for i, batch in tqdm(enumerate(dataset)):
         batch = batch.to(model_device)
         optimizer.zero_grad()
-        outputs, (_, _) = model(batch)
+        outputs, _ = model(batch)
         outputs = outputs[:, :-1]
         batch = batch[:, 1:]
         # outputs - batch_size, seq_len - 1, vocab_size
@@ -43,6 +43,7 @@ def train(model_name: str, vocab_name: str, **kwargs):
         model_name - str, name of file to save model in.
         vocab_name - str, name of file to save vocab in.
     kwargs:
+        use_gru - bool
         charemb_dim - int
         hidden_dim - int
         num_layers - int
@@ -58,12 +59,16 @@ def train(model_name: str, vocab_name: str, **kwargs):
     epochs = kwargs["epochs"]
     max_length = kwargs["max_length"]
     dataset = GeneratorDataset("data/input.txt", max_length, 5, batch_size)
-    model = LSTMGen(len(dataset.vocab), charemb_dim, hidden_dim, num_layers, dataset.vocab.pad_idx).to(device)
+    if kwargs["use_gru"]:
+        model = GRUGen(len(dataset.vocab), charemb_dim, hidden_dim, num_layers, dataset.vocab.pad_idx).to(device)
+    else:
+        model = LSTMGen(len(dataset.vocab), charemb_dim, hidden_dim, num_layers, dataset.vocab.pad_idx).to(device)
     print(model)
     optimizer = optim.Adam(model.parameters())
     if TENSORBOARD:
         writer = SummaryWriter()
     dataset.vocab.save_dict(f"{vocab_name}.pickle")
+    model.train()
     for epoch in range(epochs):
         print("=" * 50, f"Epoch {epoch}", "=" * 50)
         loss = train_epoch(model, optimizer, dataset)

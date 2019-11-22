@@ -1,9 +1,12 @@
-from src.model import LSTMGen
+from src.model import LSTMGen, GRUGen
 from src.data import Vocab
 
 
 def generate(model_name: str, vocab_name: str, length: int, **kwargs):
-    model = LSTMGen.load_model(f"{model_name}.pt").eval()
+    if kwargs["use_gru"]:
+        model = GRUGen.load_model(f"{model_name}.pt").eval()
+    else:
+        model = LSTMGen.load_model(f"{model_name}.pt").eval()
     vocab = Vocab.load_dict(f"{vocab_name}.pickle")
     while True:
         print("> ", end="")

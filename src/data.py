@@ -59,7 +59,7 @@ class GeneratorDataset:
         self.maxlength = maxlength
         self.min_freq = min_freq
         self.batch_size = batch_size
-        self.data = open(filename, 'r', encoding='utf8').read().lower()
+        self.data = open(filename, 'r', encoding='utf8').read()
         self.length = len(self.data)
         self.vocab = Vocab(min_freq)
         self.vocab.fill(self.data)
