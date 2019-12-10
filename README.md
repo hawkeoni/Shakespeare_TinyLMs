@@ -74,57 +74,36 @@ For example, to run GRU model from previous paragraph write:
 python main.py generate --model-name gru --use-gru --length 1000
 ```
 ### Output example
+Generated from single letter Q after 30 epochs.
 ```
-> ROMEO:
-ROMEO:
-Stay like a vaulina, my cousin' comes?
-But is that caured to the soseless earth;
-And let me hurrous wretched false than often.
+QUEEN MARGARET:
+Hold, tell me, 'tis not long before weap,
+Now may disperse him, Signior Gremio.
+How far off sir! hence, madam; besides, you wrong yourself
+Had never for the Lord Northumberland.
+So it promise, and she'tle thou shalt not;
+For, welcome, lady, have I held a foow
+To see your victories, and you speak fair I shall.
 
-ROMEO:
-Of, will he know both; a happy more;
-If you read to sproat ye grow; strike, I
-will name to say to the queen is us
-To pluck on eyes for life.
+PRINCE:
+Reconverse on persons with such violent rest!
+For nothing can say, it was, sure, which I bade them speak.
+But, come, I shall raise Mistann'd my several.
 
-FLORIZEL:
-Ene more bound?
+Second Citizen:
+To you so that lead me o'ercharged me would good:
+How long sitenants upon me! Many
+Miss it to vitizen there: where then,
+A curseiving not, madam, let's resign
+The venials world that women are draw;
+When I was rash'd thus and my face, and not were never
+May in his better for his hands.
 
-LUCIO:
-Let us be abislate e'er I,'t much a coadmate,
-That I apt denied my father;
-If I see thou and good country, pearinman.
+CAPULET:
+Poor gentleman, thy valour up to hear you to;
+A sent hand to nose chined. Thus his mother!
+Thy son of death doth kind us to off the Volsces,--
 
-LUCIO:
-You will my sound Murdy royally next.
-
-
-> Hello
-Hellows-shrink, Montag buried:
-I will move his grace from their country;
-And, like to lose the sun: our sheep taad
-Oe this officer of Tunin?
-Shall I, exarce be the merry weeks,
-O, by my old and prophece, that nows are ponted.
-When it is gone, in this hand, I princely, Bexasting,
-This further clamorous sister promises.
-Suppose York drust vantage; or as
-I will be fly on vost, fairs to me
-hop from arm with their fardy pinch'd cut,
-Twanting plead, all will yield my tributes unto,
-If you shall Roman Duke of Hereford, 'sTir!'
-These execution and my meaning crowns,
-It shall the dignicities all.
-O love?
-
-POMPEY:
-I reverend, you shall change me in disgrable;
-This standing that filling else they rest.
-God sands us that wo her dam is learness;
-Throng of this contrary quickly clapt,
-Thave my waters and grace O heart-goo-stap,
-When the love came mark the woes from bild
-That receipt Laurence' and to make our sweet
-Where less in't a farewellerously, alas,
-Lest flatter to live, choice,
+SIR STEPHEN SCROOP:
+Men often of the nipper about him:
 ```
