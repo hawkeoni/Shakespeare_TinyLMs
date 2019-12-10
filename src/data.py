@@ -68,7 +68,8 @@ class GeneratorDataset:
         splits = []
         start = 0
         while True:
-            offset = randint(1, self.maxlength)
+            offset = 100
+            # offset = randint(1, self.maxlength)
             sample = self.data[start: start + offset]
             if len(sample) > 0:
                 splits.append(sample)
