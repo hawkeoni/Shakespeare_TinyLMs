@@ -26,6 +26,7 @@ def main():
     subparser.add_argument("--vocab-name", type=str, default="vocab")
     subparser.add_argument("--use-gru", dest="use_gru", action="store_true", default=False)
     subparser.add_argument("--length", type=int, default=100)
+    subparser.add_argument("--temperature", type=float, default=1.0)
     args = parser.parse_args()
     args.callback(**vars(args))
 
