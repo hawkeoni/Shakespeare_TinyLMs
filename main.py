@@ -23,7 +23,7 @@ def main():
     subparser.add_argument("--charemb-dim", type=int, default=300, help="Embedding dimension size for characters.")
     subparser.add_argument("--hidden-dim", type=int, default=256, help="Hidden dimension size for RNN.")
     subparser.add_argument("--num-layers", type=int, default=2, help="Number of stacked layers in RNN.")
-    subparser.add_argument("--epochs", type=int, default=50, help="Number of epochs for training.")
+    subparser.add_argument("--epochs", type=int, default=10, help="Number of epochs for training.")
     # Generation subparser
     subparser = subparsers.add_parser("generate")
     subparser.set_defaults(callback=generate)
