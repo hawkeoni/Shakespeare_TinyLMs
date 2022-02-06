@@ -37,3 +37,10 @@ class LSTMLM(nn.Module):
         # outputs - batch, seq_len, vocab_size
         return outputs, (hidden, context)
 
+
+class VanillaTransformer(nn.Module):
+    pass
+
+
+class SwitchTransformer(nn.Module):
+    pass
