@@ -5,14 +5,7 @@ import torch.nn as nn
 from torch.nn.utils.rnn import pad_packed_sequence, pack_padded_sequence
 
 from src.modules import TransformerLayer, SwitchTransformerLayer, PositionalEmbedding
-from src.utils import LMOutput
 
-
-class LSTMOutput(LMOutput):
-    
-    def __new__(self, outputs, mask, states):
-        super(LMOutput, self).__init__(outputs, mask)
-        self.states = states
 
 class LSTMLM(nn.Module):
 
@@ -34,14 +27,18 @@ class LSTMLM(nn.Module):
         x = nn.functional.embedding(x, self.embedding)
         x = self.dropout(x)
         x = pack_padded_sequence(x, lengths, batch_first=True, enforce_sorted=False)
-        outputs, (hidden, context) = self.rnn(x)
-        outputs, _ = pad_packed_sequence(outputs, batch_first=True)
-        outputs = self.dropout(outputs)
+        output, (hidden, context) = self.rnn(x)
+        output, _ = pad_packed_sequence(output, batch_first=True)
+        output = self.dropout(output)
         # outputs - batch, seq_len, hidden_dim
         # outputs = self.out(outputs)
-        outputs = nn.functional.linear(outputs, self.embedding)
+        output = nn.functional.linear(output, self.embedding)
         # outputs - batch, seq_len, vocab_size
-        return LSTMOutput(output=outputs, mask=mask, states=(hidden, context))
+        return {
+            "output": output,
+            "mask": mask,
+            "states": (hidden, context),
+            }
 
 
 class VanillaTransformer(nn.Module):
@@ -61,15 +58,12 @@ class VanillaTransformer(nn.Module):
         x = self.posemb(x)
         for layer in self.transformer_layers:
             x = layer(x, mask)
-        outputs = nn.functional.linear(x, self.embedding)
-        return LMOutput(outputs, mask)
+        output = nn.functional.linear(x, self.embedding)
+        return {
+            "output": output,
+            "mask": mask,
+        }
 
-
-class SwitchOutput(LMOutput):
-    
-    def __new__(self, outputs, mask, lbl):
-        super(LMOutput, self).__init__(outputs, mask)
-        self.lbl = lbl
 
 
 class SwitchTransformer(nn.Module):
@@ -89,5 +83,9 @@ class SwitchTransformer(nn.Module):
         for layer in self.transformer_layers:
             x, lbl = layer(x, mask)
             load_balancing_loss += lbl
-        outputs = nn.functional.linear(x, self.embedding)
-        return SwitchOutput(outputs, mask, load_balancing_loss)
+        output = nn.functional.linear(x, self.embedding)
+        return {
+            "output": output,
+            "mask": mask,
+            "lbl": lbl,
+        }

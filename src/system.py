@@ -2,8 +2,6 @@ import torch
 import torch.nn as nn
 from pytorch_lightning.core.lightning import LightningModule
 
-from src.models import SwitchOutput
-
 
 class LMSystem(LightningModule):
 
@@ -16,13 +14,13 @@ class LMSystem(LightningModule):
     
     def _universal_step(self, batch, batch_idx):
         preds = self(batch)
+        output = preds["output"]
         loss = torch.nn.functional.cross_entropy(
-            preds.output[:, :-1].reshape(-1, preds.size(-1)), 
+            output[:, :-1].reshape(-1, output.size(-1)), 
             batch[:, 1:].reshape(-1), 
             ignore_index=0)
-        if isinstance(preds, SwitchOutput):
-            loss += preds.lbl
-            self.log("lbl", preds.lbl, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        # switch load balancing loss
+        loss += preds.get("lbl", 0)
         self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         self.log("perplexity", torch.exp(loss), on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return {"loss": loss}

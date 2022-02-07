@@ -1,3 +1,4 @@
 torch==1.10.0
 pytorch-lightning==1.5.9
+datasets==1.18.3
 wandb

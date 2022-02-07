@@ -15,8 +15,8 @@ from src import (
 def train():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", choices=["lstm", "transformer", "switch"])
-    parser.add_argument("--batch-size", default=64)
-    parser.add_argument("--max-length", default=100)
+    parser.add_argument("--batch-size", default=64, type=int)
+    parser.add_argument("--max-length", default=100, type=int)
     parser.add_argument("--only-maxlen", action="store_true")
     parser.add_argument("--wandb", action="store_true")
     args = parser.parse_args()
