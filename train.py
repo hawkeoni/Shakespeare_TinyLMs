@@ -37,8 +37,9 @@ def train():
     elif args.model == "switch":
         net = SwitchTransformer(vocab_size, 256, 4, 8, 4)
     system = LMSystem(net)
-    logger = WandbLogger(project="smol_lms") if args.wandb else None
     # callback = EarlyStopping("validation_loss", min_delta=0.1, patience=2, mode="min")
+    ckptname = f"{args.model}_{str(datetime.datetime.today())[:-7]}"
+    logger = WandbLogger(project="smol_lms", name=ckptname) if args.wandb else None
     callback = ModelCheckpoint(
         f"./checkpoints/{args.model}/{str(datetime.datetime.today())[:-7]}",
         filename='{epoch}-{val_loss:.2f}-{train_loss:.2f}',
