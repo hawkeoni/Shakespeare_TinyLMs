@@ -26,7 +26,7 @@ class LSTMLM(nn.Module):
         lengths = mask.sum(dim=1)
         x = nn.functional.embedding(x, self.embedding)
         x = self.dropout(x)
-        x = pack_padded_sequence(x, lengths, batch_first=True, enforce_sorted=False)
+        x = pack_padded_sequence(x, lengths.cpu(), batch_first=True, enforce_sorted=False)
         output, (hidden, context) = self.rnn(x)
         output, _ = pad_packed_sequence(output, batch_first=True)
         output = self.dropout(output)

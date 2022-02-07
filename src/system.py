@@ -21,18 +21,25 @@ class LMSystem(LightningModule):
             ignore_index=0)
         # switch load balancing loss
         loss += preds.get("lbl", 0)
-        self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        self.log("perplexity", torch.exp(loss), on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        return {"loss": loss}
+        return loss
 
     def training_step(self, batch, batch_idx):
-        return self._universal_step(batch, batch_idx)
+        loss = self._universal_step(batch, batch_idx)
+        self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log("train_perplexity", torch.exp(loss), on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        return {"loss": loss}
 
     def validation_step(self, batch, batch_idx):
-        return self._universal_step(batch, batch_idx)
+        loss = self._universal_step(batch, batch_idx)
+        self.log("validation_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log("validation_perplexity", torch.exp(loss), on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        return {"loss": loss}
 
     def test_step(self, batch, batch_idx):
-        return self._universal_step(batch, batch_idx)
+        loss = self._universal_step(batch, batch_idx)
+        self.log("test_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log("test_perplexity", torch.exp(loss), on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        return {"loss": loss}
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=0.001)

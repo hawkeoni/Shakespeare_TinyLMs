@@ -1,6 +1,8 @@
 import argparse
 
+import torch
 from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.trainer import Trainer
 
 from src import (
@@ -19,6 +21,7 @@ def train():
     parser.add_argument("--max-length", default=100, type=int)
     parser.add_argument("--only-maxlen", action="store_true")
     parser.add_argument("--wandb", action="store_true")
+    Trainer.add_argparse_args(parser)
     args = parser.parse_args()
     dm = TinyShakespeareDataModule(
         args.batch_size, 
@@ -33,11 +36,11 @@ def train():
     elif args.model == "switch":
         net = SwitchTransformer(vocab_size, 256, 4, 8, 4)
     system = LMSystem(net)
-    if args.wandb:
-        trainer = Trainer(logger=WandbLogger(project="smol_lms"))
-    else:
-        trainer = Trainer()
+    logger = WandbLogger(project="smol_lms") if args.wandb else None
+    callback = EarlyStopping("validation_loss", min_delta=0.1, patience=2, mode="min")
+    trainer = Trainer.from_argparse_args(args, logger=logger, callbacks=callback)
     trainer.fit(system, dm)
+    torch.save(f"./{args.model}")
 
 
 if __name__ == "__main__":
