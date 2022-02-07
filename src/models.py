@@ -1,11 +1,18 @@
-from typing import Tuple
+from typing import Tuple, NamedTuple
 
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_packed_sequence, pack_padded_sequence
 
 from src.modules import TransformerLayer, SwitchTransformerLayer, PositionalEmbedding
+from src.utils import LMOutput
 
+
+class LSTMOutput(LMOutput):
+    
+    def __new__(self, outputs, mask, states):
+        super(LMOutput, self).__init__(outputs, mask)
+        self.states = states
 
 class LSTMLM(nn.Module):
 
@@ -34,7 +41,7 @@ class LSTMLM(nn.Module):
         # outputs = self.out(outputs)
         outputs = nn.functional.linear(outputs, self.embedding)
         # outputs - batch, seq_len, vocab_size
-        return outputs, (hidden, context)
+        return LSTMOutput(output=outputs, mask=mask, states=(hidden, context))
 
 
 class VanillaTransformer(nn.Module):
@@ -54,7 +61,16 @@ class VanillaTransformer(nn.Module):
         x = self.posemb(x)
         for layer in self.transformer_layers:
             x = layer(x, mask)
-        return nn.functional.linear(x, self.embedding)
+        outputs = nn.functional.linear(x, self.embedding)
+        return LMOutput(outputs, mask)
+
+
+class SwitchOutput(LMOutput):
+    
+    def __new__(self, outputs, mask, lbl):
+        super(LMOutput, self).__init__(outputs, mask)
+        self.lbl = lbl
+
 
 class SwitchTransformer(nn.Module):
 
@@ -69,6 +85,9 @@ class SwitchTransformer(nn.Module):
     def forward(self, x):
         mask = x != 0
         x = nn.functional.embedding(x, self.embedding)
+        load_balancing_loss = 0
         for layer in self.transformer_layers:
-            x = layer(x, mask)
-        return nn.functional.linear(x, self.embedding)
+            x, lbl = layer(x, mask)
+            load_balancing_loss += lbl
+        outputs = nn.functional.linear(x, self.embedding)
+        return SwitchOutput(outputs, mask, load_balancing_loss)

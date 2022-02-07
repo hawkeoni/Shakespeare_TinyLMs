@@ -18,6 +18,7 @@ def train():
     parser.add_argument("--batch-size", default=64)
     parser.add_argument("--max-length", default=100)
     parser.add_argument("--only-maxlen", action="store_true")
+    parser.add_argument("--wandb", action="store_true")
     args = parser.parse_args()
     dm = TinyShakespeareDataModule(
         args.batch_size, 
@@ -32,8 +33,10 @@ def train():
     elif args.model == "switch":
         net = SwitchTransformer(vocab_size, 256, 4, 8, 4)
     system = LMSystem(net)
-    # trainer = Trainer(logger=WandbLogger(project="smol_lms"))
-    trainer = Trainer()
+    if args.wandb:
+        trainer = Trainer(logger=WandbLogger(project="smol_lms"))
+    else:
+        trainer = Trainer()
     trainer.fit(system, dm)
 
 

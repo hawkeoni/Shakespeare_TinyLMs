@@ -78,7 +78,75 @@ class TransformerLayer(nn.Module):
         return x
 
 
+class SwitchFFN(nn.Module):
+    """
+    Capacity is actually something which would really matter in
+    model parallel setup on a big model, but as this either
+    a single gpu or not sharded DDP we can actually not care
+    about it.
+    """
+
+    def __init__(self, d_model: int, n_experts: int, capacity_factor: float, drop_tokens: bool):
+        super().__init__()
+        self.d_model = d_model
+        self.capacity_factor = capacity_factor
+        self.drop_tokens = drop_tokens
+        self.gate = nn.Linear(d_model, n_experts)
+        self.experts = nn.ModuleList(*[nn.Sequential(
+            nn.Linear(d_model, 4 * d_model),
+            nn.ReLU(),
+            nn.Linear(4 * d_model, d_model))
+            for _ in range(n_experts)
+        ])
+        self.n_experts = n_experts
+    
+
+    def forward(self, x):
+        batch_size, seq_len, _ = x.shape
+        x = x.view(-1, x.size(2))
+        tokens_per_batch = x.size(0)
+        capacity = tokens_per_batch / self.n_experts * self.capacity_factor
+        # actually ignore capacity and do not drop tokens
+        # batch * seq_len, d_model or tokens, d_model
+        route_probs = torch.softmax(self.gate(x), dim=1)
+        # batch * seq_len, n_experts or tokens, n_experts
+        # here we get best expert probs and best expert ind
+        route_max_val, route_max_ind = torch.max(route_probs, 1)
+        outputs = torch.zeros_like(x)
+        expert_indices = []
+        num_tokens = x.size(0)
+        fi = outputs.new_zeros((num_tokens, ), dtype=torch.long)
+        # route_probs - num_tokens, num_experts
+        pi = route_probs.mean(dim=1)
+
+        for expert_num in range(self.n_experts):
+            expert_ind = (route_max_ind == expert_num).nonzero(as_tuple=True)[0]
+            fi[expert_num] = len(expert_ind)
+            expert_indices.append(expert_ind)
+            expert_input = x[expert_ind]
+            expert_output = self.experts[expert_num](expert_input)
+            outputs[expert_ind] = expert_output
+        
+        fi = fi / num_tokens
+        load_balancing_loss = 0.01 * self.n_experts * torch.dot(fi, pi)
+        
+        outputs = outputs * route_max_val.unsqueeze(1)
+        outputs = outputs.view(batch_size, seq_len, self.d_model)
+
+        return outputs, load_balancing_loss
+
+
 class SwitchTransformerLayer(nn.Module):
+
     def __init__(self, d_model: int, n_heads: int, n_experts: int):
         super().__init__()
-        pass
+        self.mha = MultiHeadAttention(d_model, n_heads)
+        self.ln1 = nn.LayerNorm(d_model)
+        self.ln2 = nn.LayerNorm(d_model)
+        self.switch_ffn = SwitchFFN(d_model, n_experts, 1.0, False)
+
+    def forward(self, x, mask):
+        x = x + self.mha(self.ln1(x), mask)
+        y, lbl = self.switch_ffn(self.ln2(x), mask)
+        x = x + y 
+        return x, lbl

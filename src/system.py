@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from pytorch_lightning.core.lightning import LightningModule
 
-
+from src.models import SwitchOutput
 
 
 class LMSystem(LightningModule):
@@ -13,37 +13,31 @@ class LMSystem(LightningModule):
 
     def forward(self, x):
         return self.net(x)
+    
+    def _universal_step(self, batch, batch_idx):
+        preds = self(batch)
+        loss = torch.nn.functional.cross_entropy(
+            preds.output[:, :-1].reshape(-1, preds.size(-1)), 
+            batch[:, 1:].reshape(-1), 
+            ignore_index=0)
+        if isinstance(preds, SwitchOutput):
+            loss += preds.lbl
+            self.log("lbl", preds.lbl, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log("perplexity", torch.exp(loss), on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        return {"loss": loss}
 
     def training_step(self, batch, batch_idx):
-        x = batch
-        preds = self(x)
-        if isinstance(preds, tuple):
-            preds = preds[0]
-        loss = torch.nn.functional.cross_entropy(preds[:, :-1].reshape(-1, preds.size(-1)), batch[:, 1:].reshape(-1))
-        self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        return {"loss": loss}
+        return self._universal_step(batch, batch_idx)
 
     def validation_step(self, batch, batch_idx):
-        x = batch
-        preds = self(x)
-        if isinstance(preds, tuple):
-            preds = preds[0]
-        loss = torch.nn.functional.cross_entropy(preds[:, :-1].reshape(-1, preds.size(-1)), batch[:, 1:].reshape(-1))
-        self.log("val_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        return {"loss": loss}
+        return self._universal_step(batch, batch_idx)
 
     def test_step(self, batch, batch_idx):
-        x = batch
-        preds = self(x)
-        if isinstance(preds, tuple):
-            preds = preds[0]
-        loss = torch.nn.functional.cross_entropy(preds[:, :-1].reshape(-1, preds.size(-1)), batch[:, 1:].reshape(-1))
-        self.log("test_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        return {"loss": loss}
+        return self._universal_step(batch, batch_idx)
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=0.001)
-
 
     def generate(self, x: torch.Tensor, temperature: float = 1.0, length: int = 100) -> torch.Tensor:
         raise NotImplementedError("This is for the future")
