@@ -26,19 +26,16 @@ class LMSystem(LightningModule):
     def training_step(self, batch, batch_idx):
         loss = self._universal_step(batch, batch_idx)
         self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        self.log("train_perplexity", torch.exp(loss), on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return {"loss": loss}
 
     def validation_step(self, batch, batch_idx):
         loss = self._universal_step(batch, batch_idx)
         self.log("validation_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        self.log("validation_perplexity", torch.exp(loss), on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return {"loss": loss}
 
     def test_step(self, batch, batch_idx):
         loss = self._universal_step(batch, batch_idx)
         self.log("test_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        self.log("test_perplexity", torch.exp(loss), on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return {"loss": loss}
 
     def configure_optimizers(self):
