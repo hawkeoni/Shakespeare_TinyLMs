@@ -148,10 +148,10 @@ class TinyShakespeareDataModule(LightningDataModule):
         self.batch_size = batch_size
 
     def train_dataloader(self):
-        return DataLoader(self.tr, batch_size=self.batch_size, shuffle=True, collate_fn=self.collate_fn)
+        return DataLoader(self.tr, batch_size=self.batch_size, shuffle=True, collate_fn=self.collate_fn, num_workers=16)
 
     def val_dataloader(self):
-        return DataLoader(self.v, batch_size=self.batch_size, shuffle=True, collate_fn=self.collate_fn)
+        return DataLoader(self.v, batch_size=self.batch_size, shuffle=False, collate_fn=self.collate_fn, num_workers=16)
 
     def test_dataloader(self):
-        return DataLoader(self.te, batch_size=self.batch_size, shuffle=False, collate_fn=self.collate_fn)
+        return DataLoader(self.te, batch_size=self.batch_size, shuffle=False, collate_fn=self.collate_fn, num_workers=16)

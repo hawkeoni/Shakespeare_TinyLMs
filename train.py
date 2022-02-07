@@ -31,11 +31,12 @@ def train():
         100)
     vocab_size = len(datamodule.vocab)
     if args.model == "lstm":
-        net = LSTMLM(vocab_size, 256, 2)
+        net = LSTMLM(vocab_size, 1024, 2)
     elif args.model == "transformer":
         net = VanillaTransformer(vocab_size, 256, 4, 8)
     elif args.model == "switch":
         net = SwitchTransformer(vocab_size, 256, 4, 8, 4)
+    print(net)
     system = LMSystem(net)
     # callback = EarlyStopping("validation_loss", min_delta=0.1, patience=2, mode="min")
     ckptname = f"{args.model}_{str(datetime.datetime.today())[:-7]}"
