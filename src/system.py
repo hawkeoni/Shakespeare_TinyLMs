@@ -42,22 +42,15 @@ class LMSystem(LightningModule):
         return torch.optim.Adam(self.parameters(), lr=0.001)
 
     def generate(self, x: torch.Tensor, temperature: float = 1.0, length: int = 100) -> torch.Tensor:
-        raise NotImplementedError("This is for the future")
-        assert temperature > 0, f"Temperature set to {temperature}, must be positive."
-        # x - 1, seq_len
-        outputs, (hidden, context) = self(x)
-        results = outputs.new_zeros((outputs.size(0), length), dtype=torch.long)
-        # [:, -1] - batch_size, vocab_size
-        # outputs - batch, seq_len, vocab_size
-        outputs = outputs / temperature
-        outputs = torch.softmax(outputs, dim=2)
-        inputs = outputs[:, -1].multinomial(1) # 1, 1
-        results[:, 0] = inputs[:, 0]
-        for i in range(1, length):
-            outputs, (hidden, context) = self.rnn(self.embedding(inputs), (hidden, context))
-            outputs = self.out(outputs) / temperature
-            outputs = torch.softmax(outputs, dim=2)
-            inputs = outputs[:, -1].multinomial(1)
-            # inputs = torch.argmax(outputs[:, -1], dim=1).unsqueeze(1)  # 1, 1
-            results[:, i] = inputs[:, 0]
-        return results
+        batch_size = x.size(0)
+        generated_ind = x.new_zeros((batch_size, length))
+        input_tensor = x
+        for generated_position in range(length):
+            # input_tensor - batch, seq_len
+            output = self(input_tensor)["output"]  # batch, seq_len, vocab_size
+            output = output[:, -1]  # batch, vocab_size
+            output = torch.softmax(output / temperature, dim=1)
+            output = output.multinomial(1)  # batch, 1
+            generated_ind[:, generated_position] = output[:, 0]
+            input_tensor = torch.cat((input_tensor, output), dim=1)
+        return generated_ind

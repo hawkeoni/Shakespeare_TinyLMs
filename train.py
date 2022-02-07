@@ -1,8 +1,9 @@
 import argparse
+import datetime
 
 import torch
 from pytorch_lightning.loggers import WandbLogger
-from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.trainer import Trainer
 
 from src import (
@@ -37,7 +38,13 @@ def train():
         net = SwitchTransformer(vocab_size, 256, 4, 8, 4)
     system = LMSystem(net)
     logger = WandbLogger(project="smol_lms") if args.wandb else None
-    callback = EarlyStopping("validation_loss", min_delta=0.1, patience=2, mode="min")
+    # callback = EarlyStopping("validation_loss", min_delta=0.1, patience=2, mode="min")
+    callback = ModelCheckpoint(
+        f"./checkpoints/{args.model}/{str(datetime.datetime.today())[:-7]}",
+        filename='{epoch}-{val_loss:.2f}-{train_loss:.2f}',
+        monitor="val_loss",
+        mode="min",
+        save_last=True)
     trainer = Trainer.from_argparse_args(args, logger=logger, callbacks=callback)
     trainer.fit(system, datamodule)
     torch.save(system.state_dict(), f"./{args.model}")
