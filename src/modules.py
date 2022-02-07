@@ -92,12 +92,12 @@ class SwitchFFN(nn.Module):
         self.capacity_factor = capacity_factor
         self.drop_tokens = drop_tokens
         self.gate = nn.Linear(d_model, n_experts)
-        self.experts = nn.ModuleList(*[nn.Sequential(
+        self.experts = nn.ModuleList(nn.Sequential(
             nn.Linear(d_model, 4 * d_model),
             nn.ReLU(),
             nn.Linear(4 * d_model, d_model))
             for _ in range(n_experts)
-        ])
+        )
         self.n_experts = n_experts
     
 
