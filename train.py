@@ -42,8 +42,8 @@ def train():
     logger = WandbLogger(project="smol_lms", name=ckptname) if args.wandb else None
     callback = ModelCheckpoint(
         f"./checkpoints/{args.model}/{str(datetime.datetime.today())[:-7]}",
-        filename='{epoch}-{val_loss:.2f}-{train_loss:.2f}',
-        monitor="val_loss",
+        filename='{epoch}-{validation_loss:.2f}-{train_loss:.2f}',
+        monitor="validation_loss",
         mode="min",
         save_last=True)
     trainer = Trainer.from_argparse_args(args, logger=logger, callbacks=callback)
