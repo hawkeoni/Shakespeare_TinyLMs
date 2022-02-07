@@ -3,6 +3,9 @@ import torch.nn as nn
 from pytorch_lightning.core.lightning import LightningModule
 
 
+from src.models import SwitchTransformer, VanillaTransformer, LSTMLM
+
+
 class LMSystem(LightningModule):
 
     def __init__(self, net: nn.Module):
@@ -39,7 +42,10 @@ class LMSystem(LightningModule):
         return {"loss": loss}
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=0.001)
+        lr = 0.001
+        if isinstance(self.net, (VanillaTransformer, SwitchTransformer)):
+            lr /= 10
+        return torch.optim.Adam(self.parameters(), lr=lr)
 
     def generate(self, x: torch.Tensor, temperature: float = 1.0, length: int = 100) -> torch.Tensor:
         batch_size = x.size(0)
